@@ -27,11 +27,12 @@ import (
 func init() {
 	stcpCmd.PersistentFlags().StringVarP(&serverAddr, "server_addr", "s", "127.0.0.1:7000", "frp server's address")
 	stcpCmd.PersistentFlags().StringVarP(&user, "user", "u", "", "user")
-	stcpCmd.PersistentFlags().StringVarP(&protocol, "protocol", "p", "tcp", "tcp or kcp")
+	stcpCmd.PersistentFlags().StringVarP(&protocol, "protocol", "p", "tcp", "tcp or kcp or websocket")
 	stcpCmd.PersistentFlags().StringVarP(&token, "token", "t", "", "auth token")
 	stcpCmd.PersistentFlags().StringVarP(&logLevel, "log_level", "", "info", "log level")
 	stcpCmd.PersistentFlags().StringVarP(&logFile, "log_file", "", "console", "console or file path")
 	stcpCmd.PersistentFlags().IntVarP(&logMaxDays, "log_max_days", "", 3, "log file reversed days")
+	stcpCmd.PersistentFlags().BoolVarP(&disableLogColor, "disable_log_color", "", false, "disable log color in console")
 
 	stcpCmd.PersistentFlags().StringVarP(&proxyName, "proxy_name", "n", "", "proxy name")
 	stcpCmd.PersistentFlags().StringVarP(&role, "role", "", "server", "role")
@@ -51,7 +52,7 @@ var stcpCmd = &cobra.Command{
 	Use:   "stcp",
 	Short: "Run frpc with a single stcp proxy",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := parseClientCommonCfg(CfgFileTypeCmd, "")
+		clientCfg, err := parseClientCommonCfg(CfgFileTypeCmd, "")
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -103,7 +104,7 @@ var stcpCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		err = startService(proxyConfs, visitorConfs)
+		err = startService(clientCfg, proxyConfs, visitorConfs, "")
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
